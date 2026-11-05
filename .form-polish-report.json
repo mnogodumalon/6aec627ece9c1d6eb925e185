@@ -1,0 +1,30 @@
+{
+  "entities": {
+    "Interaktionen": {
+      "placeholders_set": 7,
+      "defaults_keys": [],
+      "computed_keys": [],
+      "reason": "Keine Formeln, da es nur Stammdaten und Texte ohne Datums- oder Zahlenbezug gibt (Reihenfolge ist nur eine Sortierzahl)."
+    },
+    "Veranstaltungen": {
+      "placeholders_set": 6,
+      "defaults_keys": [
+        "datum"
+      ],
+      "computed_keys": [],
+      "reason": "Keine Formeln, da die Veranstaltung nur Stammdaten ohne numerische Berechnung enthält und die Reihenfolge der Interaktion keine Summe ergibt."
+    },
+    "Teilnehmende": {
+      "placeholders_set": 4,
+      "defaults_keys": [],
+      "computed_keys": [],
+      "reason": "Keine Formeln, da nur Stammdaten ohne numerische Felder oder Datumspaare vorhanden sind; Einwilligung und Zeitpunkt bleiben ohne Default, damit die Zustimmung bewusst erfolgt."
+    },
+    "Feedbacks": {
+      "placeholders_set": 5,
+      "defaults_keys": [],
+      "computed_keys": [],
+      "reason": "Keine Formel, da es keine Datumspaare oder Mengen gibt und die Reihenfolge der Interaktion keine Berechnung ergibt."
+    }
+  }
+}

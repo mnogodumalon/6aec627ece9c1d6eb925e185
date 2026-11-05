@@ -1,0 +1,32 @@
+{
+  "InteraktionenDialog.tsx": {
+    "titel": "z. B. Zukunft der Arbeit",
+    "reihenfolge": "z. B. 1",
+    "frage": "Was möchten Sie fragen?",
+    "vorprompt": "Was soll der KI vorangestellt werden?",
+    "endprompt": "Was soll am Ende stehen?",
+    "gesamttext": "Alle Beiträge zusammengeführt",
+    "ki_antwort": "Antwort der KI hier einfügen"
+  },
+  "VeranstaltungenDialog.tsx": {
+    "titel": "z. B. KI-Abend Frühjahr",
+    "datum": "Wann findet es statt?",
+    "ort": "z. B. Denkraum Berlin",
+    "beschreibung": "Worum geht es?",
+    "teilnahme_link": "z. B. https://example.com/join",
+    "aktive_interaktion": "Welche Interaktion läuft?"
+  },
+  "TeilnehmendeDialog.tsx": {
+    "veranstaltung": "Welche Veranstaltung?",
+    "kuerzel": "z. B. AB-17",
+    "email": "z. B. name@beispiel.de",
+    "einwilligung_zeitpunkt": "Wann wurde eingewilligt?"
+  },
+  "FeedbacksDialog.tsx": {
+    "interaktion": "Zu welcher Interaktion?",
+    "teilnehmer": "Wer gibt das Feedback?",
+    "feedbacktext": "Was ist dir aufgefallen?",
+    "absende_schluessel": "z. B. FB-2026-001",
+    "gesendet_am": "Wann wurde es gesendet?"
+  }
+}

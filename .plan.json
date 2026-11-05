@@ -1,0 +1,319 @@
+{
+  "version": 1,
+  "language": "de",
+  "understanding": {
+    "summary": "Du moderierst Veranstaltungen und bereitest dafür Interaktionen vor, jede mit einer Frage an die Teilnehmenden, einem Vorprompt und einem Endprompt. Pro Veranstaltung setzt du mit einem Klick genau eine Interaktion aktiv. Teilnehmende scannen den QR-Code und sehen ohne Anmeldung nur das Feedback-Formular der aktiven Interaktion. Jedes Handy bekommt beim ersten Feedback still ein fünfstelliges Kürzel, das nach jedem Absenden angezeigt wird, und ein Feedback kommt nie doppelt an. Am Ende können Teilnehmende freiwillig ihre E-Mail-Adresse mit Einwilligung zu ihrem Kürzel hinterlegen. Mit einem Klick führst du alle Feedbacks der aktiven Interaktion in ein großes Textfeld zusammen (Vorprompt, Feedbacks mit Kürzel, Endprompt), das du bearbeitest, kopierst und dessen KI-Antwort du bei der Interaktion einfügst. Den Chatbot bedienst du selbst, ein externer KI-Dienst wird nicht angebunden.",
+    "outside_users": [
+      {
+        "who": "Teilnehmende",
+        "does": "scannen den QR-Code, geben Feedback zur aktiven Interaktion und hinterlegen freiwillig ihre E-Mail mit Einwilligung zum Kürzel"
+      }
+    ],
+    "roles": [
+      "Moderator (Veranstalter)",
+      "Teilnehmende"
+    ],
+    "main_tasks": [
+      "Veranstaltungen und Interaktionen anlegen",
+      "Aktive Interaktion einer Veranstaltung setzen",
+      "Feedbacks zu einem Gesamttext zusammenführen",
+      "Text bearbeiten, kopieren und KI-Antwort einfügen"
+    ],
+    "platform_roles": [
+      {
+        "persona": "Moderator (Veranstalter)",
+        "role": "datenverarbeitung",
+        "apps": [
+          "veranstaltungen",
+          "interaktionen",
+          "teilnehmende",
+          "feedbacks"
+        ]
+      }
+    ],
+    "wish_kind": "plain",
+    "wish_signals": []
+  },
+  "flows": [
+    {
+      "slug": "aktive-interaktion-setzen",
+      "label": {
+        "de": "Aktive Interaktion setzen",
+        "en": "Set active interaction"
+      },
+      "description": "Der Moderator wählt eine Veranstaltung und setzt mit einem Klick die Interaktion, zu der die Teilnehmenden gerade Feedback geben.",
+      "priority": "must",
+      "writes": [
+        {
+          "entity": "veranstaltungen",
+          "op": "update",
+          "when": "always",
+          "fields": {
+            "aktive_interaktion": "picked"
+          },
+          "multiple": false,
+          "needs": {},
+          "defaults": []
+        }
+      ],
+      "required": [],
+      "brief": "# Flow `aktive-interaktion-setzen` — Aktive Interaktion setzen\nDer Moderator wählt eine Veranstaltung und setzt mit einem Klick die Interaktion, zu der die Teilnehmenden gerade Feedback geben.\n\n## Your hook — import it, never rebuild what it owns\n`import { useAktiveInteraktionSetzenFlow } from '@/lib/journey/flows/AktiveInteraktionSetzen';` — generated from the Schreibliste below. It OWNS the form(s), one record search per picked field (columns and filter from the plan) and the submit plan with every fixed and derived value. You compose: `flow.forms.<entity>` for <Bound>/<Field>, `{...flow.picks.<field>.select} {...flow.pick('<field>')}` (or `flow.pickMany` for a multi pick) for <EntitySelectStep>, `flow.validateStep(n)` in StepNav.onNext, `flow.submit` + `flow.formList` for SummaryStep/SuccessStep, `flow.reset()`; what the hook does not own reads through its door `flow.port` — availability `useOccupancy(flow.port, '<entity>', { resource })`, a count `useRecordCount(flow.port, …)` — never import servicePort next to the hook. Options: `steps` (field → step), `items` (how a hit reads, per pick: aktive_interaktion), `initial`, `messages`. The hook's docblock in .lane-context.md shows the exact call. This flow CHANGES a record of `veranstaltungen`: `{...flow.picks.veranstaltungen.select} {...flow.pick('veranstaltungen')}` picks it, the hook prefills the form with its current values and updates THAT record — never a create step, never a list from useDashboardData. Never import servicePort, useStepForm, useJourneySubmit, useRecordSearch or useDashboardData in this page — check-intents refuses a page that uses the hook and any of them.\n\n## Steps (in this order)\n1. Veranstaltung wählen\n2. Interaktion wählen, die jetzt aktiv sein soll\n3. Bestätigen\n\n## Schreibliste — the ONLY writes this flow makes (the gate compares your plan steps with this list)\n- updates `veranstaltungen`:\n    - `aktive_interaktion`: from the record the user picks in this flow\n\n## Reads\n- `veranstaltungen` columns titel, datum, aktive_interaktion\n- `interaktionen` columns titel, reihenfolge, frage\n\n## Success page\n- the success page offers the way back — `undo={flow.undo}` on <SuccessStep>: „Aktive Interaktion zurücknehmen“ sets aktive_interaktion=\n- shows: `veranstaltungen.aktive_interaktion`\n- next flows to offer: `feedbacks-zusammenfuehren`\n\n## Never write these — another flow or a tool owns them\n- `interaktionen.gesamttext` (owner: intent `feedbacks-zusammenfuehren`)\n- `interaktionen.ki_antwort` (owner: intent `ki-antwort-einfuegen`)\n- `feedbacks.gesendet_am` (owner: tool `feedback-zeitpunkt-setzen`)\n- `teilnehmende.einwilligung_zeitpunkt` (owner: tool `einwilligungszeitpunkt-setzen`)\n"
+    },
+    {
+      "slug": "feedbacks-zusammenfuehren",
+      "label": {
+        "de": "Feedbacks zusammenführen",
+        "en": "Merge feedback"
+      },
+      "description": "Mit einem Klick werden alle Feedbacks der aktiven Interaktion zu einem großen Text: oben der Vorprompt, dann jedes Feedback mit Kürzel, unten der Endprompt.",
+      "priority": "must",
+      "writes": [
+        {
+          "entity": "interaktionen",
+          "op": "update",
+          "when": "always",
+          "fields": {
+            "gesamttext": "derived:computed:Vorprompt, dann jedes Feedback der aktiven Interaktion mit dem Kürzel des Teilnehmers (eines pro Zeile), dann Endprompt"
+          },
+          "multiple": false,
+          "needs": {
+            "gesamttext": [
+              "vorprompt",
+              "endprompt"
+            ]
+          },
+          "defaults": []
+        }
+      ],
+      "required": [],
+      "brief": "# Flow `feedbacks-zusammenfuehren` — Feedbacks zusammenführen\nMit einem Klick werden alle Feedbacks der aktiven Interaktion zu einem großen Text: oben der Vorprompt, dann jedes Feedback mit Kürzel, unten der Endprompt.\n\n## Your hook — import it, never rebuild what it owns\n`import { useFeedbacksZusammenfuehrenFlow } from '@/lib/journey/flows/FeedbacksZusammenfuehren';` — generated from the Schreibliste below. It OWNS the form(s), one record search per picked field (columns and filter from the plan) and the submit plan with every fixed and derived value. You compose: `flow.forms.<entity>` for <Bound>/<Field>, `{...flow.picks.<field>.select} {...flow.pick('<field>')}` (or `flow.pickMany` for a multi pick) for <EntitySelectStep>, `flow.validateStep(n)` in StepNav.onNext, `flow.submit` + `flow.formList` for SummaryStep/SuccessStep, `flow.reset()`; what the hook does not own reads through its door `flow.port` — availability `useOccupancy(flow.port, '<entity>', { resource })`, a count `useRecordCount(flow.port, …)` — never import servicePort next to the hook. Options: `steps` (field → step), `items` (how a hit reads, per pick), `initial`, `messages`, and `compute` — REQUIRED, the plan leaves these rules to you: gesamttext. The hook's docblock in .lane-context.md shows the exact call. This flow CHANGES a record of `interaktionen`: `{...flow.picks.interaktionen.select} {...flow.pick('interaktionen')}` picks it, the hook prefills the form with its current values and updates THAT record — never a create step, never a list from useDashboardData. Never import servicePort, useStepForm, useJourneySubmit, useRecordSearch or useDashboardData in this page — check-intents refuses a page that uses the hook and any of them.\n\n## Steps (in this order)\n1. Veranstaltung wählen, deren aktive Interaktion zusammengeführt werden soll\n2. Zusammenführen auslösen\n3. Gesamttext wird in der Interaktion gespeichert\n\n## Schreibliste — the ONLY writes this flow makes (the gate compares your plan steps with this list)\n- updates `interaktionen`:\n    - `gesamttext`: derived (computed)\n\n## Reads\n- `veranstaltungen` columns titel, aktive_interaktion\n- `feedbacks` columns feedbacktext, teilnehmer, gesendet_am\n\n## Success page\n- the success page offers the way back — `undo={flow.undo}` on <SuccessStep>: „Zusammengeführten Text verwerfen“ sets gesamttext=\n- shows: `interaktionen.gesamttext`\n- next flows to offer: `ki-antwort-einfuegen`\n\n## Never write these — another flow or a tool owns them\n- `veranstaltungen.aktive_interaktion` (owner: intent `aktive-interaktion-setzen`)\n- `interaktionen.ki_antwort` (owner: intent `ki-antwort-einfuegen`)\n- `feedbacks.gesendet_am` (owner: tool `feedback-zeitpunkt-setzen`)\n- `teilnehmende.einwilligung_zeitpunkt` (owner: tool `einwilligungszeitpunkt-setzen`)\n"
+    },
+    {
+      "slug": "ki-antwort-einfuegen",
+      "label": {
+        "de": "KI-Antwort einfügen",
+        "en": "Add AI answer"
+      },
+      "description": "Die Antwort des Chatbots wird gleich oder später bei der Interaktion eingefügt.",
+      "priority": "must",
+      "writes": [
+        {
+          "entity": "interaktionen",
+          "op": "update",
+          "when": "always",
+          "fields": {
+            "ki_antwort": "user"
+          },
+          "multiple": false,
+          "needs": {},
+          "defaults": []
+        }
+      ],
+      "required": [],
+      "brief": "# Flow `ki-antwort-einfuegen` — KI-Antwort einfügen\nDie Antwort des Chatbots wird gleich oder später bei der Interaktion eingefügt.\n\n## Your hook — import it, never rebuild what it owns\n`import { useKiAntwortEinfuegenFlow } from '@/lib/journey/flows/KiAntwortEinfuegen';` — generated from the Schreibliste below. It OWNS the form(s), one record search per picked field (columns and filter from the plan) and the submit plan with every fixed and derived value. You compose: `flow.forms.<entity>` for <Bound>/<Field>, `{...flow.picks.<field>.select} {...flow.pick('<field>')}` (or `flow.pickMany` for a multi pick) for <EntitySelectStep>, `flow.validateStep(n)` in StepNav.onNext, `flow.submit` + `flow.formList` for SummaryStep/SuccessStep, `flow.reset()`; what the hook does not own reads through its door `flow.port` — availability `useOccupancy(flow.port, '<entity>', { resource })`, a count `useRecordCount(flow.port, …)` — never import servicePort next to the hook. Options: `steps` (field → step), `items` (how a hit reads, per pick), `initial`, `messages`. The hook's docblock in .lane-context.md shows the exact call. This flow CHANGES a record of `interaktionen`: `{...flow.picks.interaktionen.select} {...flow.pick('interaktionen')}` picks it, the hook prefills the form with its current values and updates THAT record — never a create step, never a list from useDashboardData. Never import servicePort, useStepForm, useJourneySubmit, useRecordSearch or useDashboardData in this page — check-intents refuses a page that uses the hook and any of them.\n\n## Steps (in this order)\n1. Interaktion wählen\n2. Antwort der KI einfügen\n3. Speichern\n\n## Schreibliste — the ONLY writes this flow makes (the gate compares your plan steps with this list)\n- updates `interaktionen`:\n    - `ki_antwort`: the user enters it (bind it through the layer: form.field/…)\n\n## Reads\n- `interaktionen` columns titel, frage, gesamttext, ki_antwort\n\n## Success page\n- the success page offers the way back — `undo={flow.undo}` on <SuccessStep>: „KI-Antwort entfernen“ sets ki_antwort=\n- shows: `interaktionen.ki_antwort`\n\n## Never write these — another flow or a tool owns them\n- `veranstaltungen.aktive_interaktion` (owner: intent `aktive-interaktion-setzen`)\n- `interaktionen.gesamttext` (owner: intent `feedbacks-zusammenfuehren`)\n- `feedbacks.gesendet_am` (owner: tool `feedback-zeitpunkt-setzen`)\n- `teilnehmende.einwilligung_zeitpunkt` (owner: tool `einwilligungszeitpunkt-setzen`)\n"
+    }
+  ],
+  "public_pages": [
+    {
+      "slug": "feedback-geben",
+      "purpose": "Teilnehmende scannen den QR-Code der Veranstaltung und sehen ohne Anmeldung nur das Feedback-Formular der gerade aktiven Interaktion. Sie können beliebig viele Feedbacks senden. Beim ersten Feedback erzeugt das Handy still ein fünfstelliges Kürzel, merkt es sich für den Abend und zeigt es nach jedem Absenden an. Ein Feedback kommt nie doppelt an, auch nicht bei erneutem Tippen auf Senden. Am Ende können Teilnehmende freiwillig ihre E-Mail-Adresse mit Einwilligung zu ihrem Kürzel hinterlegen.",
+      "publish": true,
+      "lists": [
+        {
+          "entity": "veranstaltungen",
+          "columns": [
+            "titel",
+            "datum",
+            "ort",
+            "beschreibung",
+            "aktive_interaktion"
+          ],
+          "filter": null,
+          "max_records": null
+        },
+        {
+          "entity": "interaktionen",
+          "columns": [
+            "titel",
+            "frage"
+          ],
+          "filter": null,
+          "max_records": null
+        }
+      ],
+      "creates": [
+        {
+          "entity": "teilnehmende",
+          "fields": {
+            "veranstaltung": "picked",
+            "kuerzel": "derived:device:fünf Zeichen aus Buchstaben und Ziffern ohne 0/O/1/I, einmal je Handy beim ersten Feedback erzeugt und für den Abend gemerkt",
+            "email": "user",
+            "einwilligung": "user"
+          },
+          "fixed": {}
+        },
+        {
+          "entity": "feedbacks",
+          "fields": {
+            "interaktion": "picked",
+            "teilnehmer": "picked:own_earlier",
+            "feedbacktext": "user",
+            "absende_schluessel": "derived:device:eindeutiger Schlüssel je Absenden, damit ein Feedback bei erneutem Senden nicht doppelt ankommt"
+          },
+          "fixed": {}
+        }
+      ],
+      "page_sets": [
+        "feedbacks.interaktion"
+      ],
+      "brief": "# Public page `feedback-geben`\nTeilnehmende scannen den QR-Code der Veranstaltung und sehen ohne Anmeldung nur das Feedback-Formular der gerade aktiven Interaktion. Sie können beliebig viele Feedbacks senden. Beim ersten Feedback erzeugt das Handy still ein fünfstelliges Kürzel, merkt es sich für den Abend und zeigt es nach jedem Absenden an. Ein Feedback kommt nie doppelt an, auch nicht bei erneutem Tippen auf Senden. Am Ende können Teilnehmende freiwillig ihre E-Mail-Adresse mit Einwilligung zu ihrem Kürzel hinterlegen.\n\n## Lists (declare exactly these in the surface)\n- `veranstaltungen`: columns `titel`, `datum`, `ort`, `beschreibung`, `aktive_interaktion`\n- `interaktionen`: columns `titel`, `frage`\n\n## Creates (declare exactly these in the surface)\n- `teilnehmende`: visitor fields `veranstaltung`, `email`, `einwilligung`\n  - `kuerzel` is made by the PAGE itself, silently, no control: fünf Zeichen aus Buchstaben und Ziffern ohne 0/O/1/I, einmal je Handy beim ersten Feedback erzeugt und für den Abend gemerkt (list it in the endpoint's fields; the gates know it is not a visitor input)\n- `feedbacks`: visitor fields `interaktion`, `feedbacktext`\n  - `absende_schluessel` is made by the PAGE itself, silently, no control: eindeutiger Schlüssel je Absenden, damit ein Feedback bei erneutem Senden nicht doppelt ankommt (list it in the endpoint's fields; the gates know it is not a visitor input)\n  - `teilnehmer` is a pick among the records THIS DEVICE created earlier on this page: feed the pick with `ownRecordIds('feedbacks')`-filtered items (`where: r => ownRecordIds(...).includes(r.id)`) and call `rememberOwnRecord('<entity>', result.id)` after every successful create; if the grant rejects the reference on submit (PL-5 is open), write the earlier record's key into a text field instead and say so\n\n## Link parameter (declare exactly this in the surface)\n- `link_param: { name: 'veranstaltung', entity: 'veranstaltungen', label_field: 'titel' }` — the page opens as `#/public/feedback-geben?veranstaltung=<id>` and reads THAT `veranstaltungen` record from its list endpoint; without the parameter it shows a short notice (never a list to pick from — the owner hands out one link per record).\n\n## Availability — mechanical, write nothing for it\nA picker (`useRecordSearch`) never offers a record another record already takes (a booked slot) — the layer leaves it out. To SHOW booked periods, call `useOccupancy(port, '<entity>')` and hand `blocked` to AvailabilityRangePicker; the integration gives the page exactly that read (dates or the reference, never who booked). Never declare a list of bookings with names or contacts to work availability out yourself.\n\nPublish: never from here — every page starts as a draft; the owner publishes it under Verwaltung → Öffentliche Seiten after the build (the plan wishes it published)\n"
+    }
+  ],
+  "tools": [
+    {
+      "id": "feedback-zeitpunkt-setzen",
+      "purpose": "Schreibt beim Eingang eines Feedbacks den Zeitpunkt aus der Serveruhr in das Feld Gesendet am, denn die öffentliche Seite darf keinen Zeitpunkt senden."
+    },
+    {
+      "id": "einwilligungszeitpunkt-setzen",
+      "purpose": "Schreibt den Zeitpunkt der Einwilligung aus der Serveruhr, wenn bei einem neuen Teilnehmer die Einwilligung gesetzt ist. Fehlt die Einwilligung, wird die E-Mail-Adresse geleert."
+    },
+    {
+      "id": "doppeltes-feedback-markieren",
+      "purpose": "Erkennt ein doppelt angekommenes Feedback am gleichen Absende-Schlüssel. Das frühere Feedback bleibt, das spätere wird gelöscht, weil es nur eine Wiederholung desselben Absendens ist."
+    },
+    {
+      "id": "feedbacks-doppelt-verhindern",
+      "purpose": "Löscht in feedbacks einen später angelegten Datensatz, wenn ein früherer dieselbe „Absende-Schlüssel“ hat — der frühere gilt"
+    },
+    {
+      "id": "teilnehmende-doppelt-verhindern",
+      "purpose": "Löscht in teilnehmende einen später angelegten Datensatz, wenn ein früherer dieselbe „Kürzel“ hat — der frühere gilt"
+    },
+    {
+      "id": "feedbacks-nur-gueltige-interaktion",
+      "purpose": "Löscht in feedbacks einen neuen Datensatz, wenn »Interaktion« nicht der Datensatz ist, auf den »Aktive Interaktion« der zugehörigen »Veranstaltungen« gerade zeigt (die Seite bietet nur diese an, die Freigabe kann es nicht prüfen)"
+    },
+    {
+      "id": "teilnehmende-einwilligung-pruefen",
+      "purpose": "Leert die E-Mail in teilnehmende, wenn „Ich willige in die Speicherung meiner E-Mail-Adresse ein“ nicht gesetzt ist (Datenschutz)"
+    }
+  ],
+  "covered_by_platform": [
+    {
+      "wish": "Veranstaltungen und Interaktionen lege ich selbst an",
+      "feature": "record_form"
+    },
+    {
+      "wish": "Feedbacks ansehen und durchsuchen",
+      "feature": "list_page"
+    }
+  ],
+  "ownership": {
+    "veranstaltungen": {
+      "aktive_interaktion": "intent:aktive-interaktion-setzen"
+    },
+    "interaktionen": {
+      "gesamttext": "intent:feedbacks-zusammenfuehren",
+      "ki_antwort": "intent:ki-antwort-einfuegen"
+    },
+    "feedbacks": {
+      "gesendet_am": "tool:feedback-zeitpunkt-setzen"
+    },
+    "teilnehmende": {
+      "einwilligung_zeitpunkt": "tool:einwilligungszeitpunkt-setzen"
+    }
+  },
+  "dashboard": {
+    "focus": [
+      "Aktive Interaktion je Veranstaltung",
+      "Eingegangene Feedbacks der aktiven Interaktion"
+    ],
+    "hints": [
+      "Aktive Interaktion mit einem Klick setzen",
+      "Zusammenführen der Feedbacks mit einem Klick",
+      "Zusammengeführten Text bildschirmfüllend öffnen und bearbeiten",
+      "QR-Code der Veranstaltung bildschirmfüllend öffnen"
+    ],
+    "views": [
+      {
+        "route": "qr-code",
+        "label": {
+          "de": "QR-Code",
+          "en": "QR code"
+        },
+        "purpose": "Den QR-Code der Veranstaltung bildschirmfüllend zeigen, damit Teilnehmende ihn scannen",
+        "bare": true,
+        "live_seconds": 0,
+        "reads": [
+          {
+            "entity": "veranstaltungen",
+            "columns": [
+              "titel",
+              "teilnahme_link"
+            ],
+            "filter": {
+              "mode": "all",
+              "conditions": [
+                {
+                  "field": "teilnahme_link",
+                  "op": "not_empty"
+                }
+              ]
+            }
+          }
+        ],
+        "contract": [
+          "Zeigt den QR-Code zum Link der Veranstaltung, die der Moderator auf der Übersicht zum Zeigen gewählt hat, so groß wie möglich.",
+          "Hat die Veranstaltung keinen Link, erscheint der Hinweis „Kein Link hinterlegt“."
+        ],
+        "shows_marked": "",
+        "edits": []
+      },
+      {
+        "route": "gesamttext",
+        "label": {
+          "de": "Gesamttext",
+          "en": "Combined text"
+        },
+        "purpose": "Den zusammengeführten Text der aktiven Interaktion bildschirmfüllend zeigen, bearbeiten und mit einem Klick kopieren",
+        "bare": true,
+        "live_seconds": 0,
+        "reads": [
+          {
+            "entity": "interaktionen",
+            "columns": [
+              "titel",
+              "frage",
+              "gesamttext"
+            ],
+            "filter": {
+              "mode": "all",
+              "conditions": []
+            }
+          }
+        ],
+        "contract": [
+          "Zeigt den Gesamttext der Interaktion, die bei der Veranstaltung als aktive Interaktion gesetzt ist, in einem großen Textfeld.",
+          "Änderungen im Textfeld werden automatisch gespeichert; ein Knopf kopiert den ganzen Text in die Zwischenablage.",
+          "Ist noch keine Interaktion aktiv oder der Text leer, erscheint der Hinweis „Noch kein Text zusammengeführt“."
+        ],
+        "shows_marked": "veranstaltungen.aktive_interaktion",
+        "edits": [
+          "interaktionen.gesamttext"
+        ]
+      }
+    ],
+    "writes": [
+      {
+        "entity": "interaktionen",
+        "fields": [
+          "gesamttext"
+        ],
+        "how": "inline",
+        "rule": "gesamttext wird bei der Interaktion gespeichert, die bei der gezeigten Veranstaltung aktiv ist."
+      }
+    ],
+    "wishes": []
+  }
+}

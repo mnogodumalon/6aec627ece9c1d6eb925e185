@@ -1,0 +1,33 @@
+{
+  "pages": {
+    "en": {
+      "Aktiv": "Active",
+      "Aktiv setzen": "Set active",
+      "Antwort einfügen": "Insert response",
+      "Bei „{0}“ ist noch keine Interaktion aktiv — wähle unten eine aus.": "No interaction is active for \"{0}\" yet — choose one below.",
+      "Eingegangene Feedbacks": "Received feedback",
+      "Erste Veranstaltung anlegen": "Create first event",
+      "Feedbacks (aktiv)": "Feedback (active)",
+      "Feedbacks zusammenführen": "Merge feedback",
+      "Gesamttext öffnen": "Open full text",
+      "Ja": "Yes",
+      "Keine offenen KI-Antworten.": "No pending AI responses.",
+      "Lege deine erste Veranstaltung an, um loszulegen.": "Create your first event to get started.",
+      "Nein": "No",
+      "Noch kein Feedback — zeig den QR-Code.": "No feedback yet — show the QR code.",
+      "Noch keine Interaktion vorbereitet.": "No interaction prepared yet.",
+      "Noch keine Veranstaltung angelegt.": "No event created yet.",
+      "QR-Code groß": "QR code large",
+      "Setze zuerst eine Interaktion aktiv.": "Set an interaction active first.",
+      "Teilnehmende mit Kürzel": "Participants with code",
+      "Text zusammengeführt": "Text merged",
+      "Text zusammengeführt, Antwort fehlt": "Text merged, response missing",
+      "Unbekannt": "Unknown",
+      "Veranstaltung": "Event",
+      "Wartet auf KI-Antwort": "Waiting for AI response",
+      "„{0}“ läuft — noch wartet ihr auf das erste Feedback.": "\"{0}\" is running — still waiting for the first feedback.",
+      "„{0}“ läuft — zuletzt hat {1} Feedback gegeben.": "\"{0}\" is running — most recently, {1} gave feedback."
+    }
+  },
+  "v": 1
+}
