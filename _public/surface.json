@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "pages": [
+    {
+      "slug": "feedback-geben",
+      "component": "FeedbackGeben",
+      "title": "Feedback geben",
+      "link_param": {
+        "name": "veranstaltung",
+        "entity": "veranstaltungen",
+        "label_field": "titel"
+      },
+      "endpoints": [
+        {
+          "entity": "veranstaltungen",
+          "op": "list",
+          "fields": [
+            "titel",
+            "datum",
+            "ort",
+            "beschreibung",
+            "aktive_interaktion"
+          ],
+          "max_records": 500
+        },
+        {
+          "entity": "interaktionen",
+          "op": "list",
+          "fields": [
+            "titel",
+            "frage"
+          ],
+          "max_records": 500
+        },
+        {
+          "entity": "teilnehmende",
+          "op": "create",
+          "fields": [
+            "veranstaltung",
+            "kuerzel",
+            "email",
+            "einwilligung"
+          ]
+        },
+        {
+          "entity": "feedbacks",
+          "op": "create",
+          "fields": [
+            "interaktion",
+            "teilnehmer",
+            "feedbacktext",
+            "absende_schluessel"
+          ]
+        }
+      ]
+    }
+  ]
+}
